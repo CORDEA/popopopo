@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
@@ -24,21 +26,59 @@ class _CustomPainter extends CustomPainter {
   _CustomPainter({
     required String text,
     required TextStyle style,
-  }) : _painter = TextPainter(
-          text: TextSpan(text: text, style: style),
+  })  : _foregroundPainter = TextPainter(
+          text: TextSpan(
+            text: text,
+            style: style.copyWith(color: _primaryColor),
+          ),
           textDirection: TextDirection.ltr,
-        );
+        )..layout(),
+        _backgroundPainter = TextPainter(
+          text: TextSpan(
+            text: text,
+            style: style.copyWith(color: _accentColor),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout();
 
-  final TextPainter _painter;
+  static const _clipRadius = 100.0;
+
+  static const _primaryColor = Color(0xff004d40);
+  static const _accentColor = Color(0xffffcdd2);
+
+  final TextPainter _foregroundPainter;
+  final TextPainter _backgroundPainter;
 
   @override
   void paint(Canvas canvas, Size size) {
-    _painter.layout();
-    _painter.paint(
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Paint()..color = _primaryColor,
+    );
+
+    final path = Path()
+      ..addOval(
+        Rect.fromCircle(
+          center: Offset(size.width / 2, size.height / 2),
+          radius: _clipRadius,
+        ),
+      );
+    canvas.drawPath(path, Paint()..color = _accentColor);
+    _backgroundPainter.paint(
       canvas,
       Offset(
-        (size.width / 2) - (_painter.width / 2),
-        (size.height / 2) - (_painter.height / 2),
+        (size.width / 2) - (_foregroundPainter.width / 2),
+        (size.height / 2) - (_foregroundPainter.height / 2),
+      ),
+    );
+
+    canvas.clipPath(path);
+
+    _foregroundPainter.paint(
+      canvas,
+      Offset(
+        (size.width / 2) - (_foregroundPainter.width / 2),
+        (size.height / 2) - (_foregroundPainter.height / 2),
       ),
     );
   }
